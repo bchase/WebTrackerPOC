@@ -17,14 +17,14 @@ dbPool :: (Int,            Int,                                 ByteString, Word
 dbPool (   maxConnections, maxIdleSeconds,                      host,       port,   user,       password,   database) =
   acquire (maxConnections, fromInteger maxIdleSeconds, settings host        port    user        password    database)
 
-scottyDoesDBIO :: Pool -> Session a -> ActionM a
-scottyDoesDBIO pool session = do
+scottyDoesDB :: Pool -> Session a -> ActionM a
+scottyDoesDB pool session = do
   eitherErrorOrX <- liftAndCatchIO $ use pool session
   scottyActionFromEitherError "database session" eitherErrorOrX
 
 scottyGuarenteesDB :: Pool -> Session (Maybe a) -> ActionM a
 scottyGuarenteesDB connection session = do
-  maybeX <- scottyDoesDBIO connection session
+  maybeX <- scottyDoesDB connection session
   let eitherX = maybe (Left "We couldn't find the thing in the DB.") (Right) maybeX
   scottyActionFromEitherError "database guarentee" eitherX
 
