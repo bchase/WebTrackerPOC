@@ -1,6 +1,5 @@
 module DBTypes.Consumption where
 
-import Data.ByteString
 import Data.Functor.Contravariant ((>$<))
 import Data.Monoid ((<>))
 import Data.Text (Text)
@@ -8,15 +7,14 @@ import Data.Time.Clock (UTCTime)
 import Data.UUID (UUID)
 import qualified Hasql.Decoders as Decode
 import qualified Hasql.Encoders as Encode
-import Hasql.Query (Query, statement)
+
+import DBTypes (DBTuple, KeyedTable, Table, WriteableTable)
 
 data Row = Row {
   consumer :: UUID,
   item :: Text,
-  happened :: UTCTime,
+  happened :: UTCTime
 }
-
-_table = const "consumption"
 
 instance DBTuple Row where
   columns = const ["consumer", "item", "happened", "status"]
@@ -32,9 +30,11 @@ instance DBTuple Row where
                         consumer = consumer',
                         item = item',
                         happened = happened'
-                      }
+                        }
 
-instance WritableTable Row where
-  table = _table
+instance Table Row where
+  table =  const "consumption"
+
+instance WritableTable Row where {}
 
 

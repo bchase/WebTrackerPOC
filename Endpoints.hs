@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Endpoints.hs where
+module Endpoints where
 
 import Data.Monoid ((<>))
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Hasql.Pool (Pool)
 import Web.Scotty (ActionM, liftAndCatchIO, param, raise, text)
+import Web.Scotty.Cookie (getCookie, setSimpleCookie)
 
 import DBHelpers (addRow, dbPool, getAllRows, getRow, scottyActionFromEitherError, scottyDoesDB, scottyGuarenteesDB)
 import qualified DBTypes.Account as Account (name, PrimaryKey, Row)

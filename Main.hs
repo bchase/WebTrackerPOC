@@ -4,11 +4,13 @@ module Main where
 
 import Data.ConfigFile (emptyCP, readfile, simpleAccess)
 import Data.Monoid ((<>))
-import Data.Text.Lazy (pack)
 import Data.Tuple.Sequence (sequenceT)
 import Hasql.Pool (release)
 import System.Exit (die)
-import Web.Scotty (ActionM, get, liftAndCatchIO, scotty)
+import Web.Scotty (ActionM, get, liftAndCatchIO, post, scotty)
+
+import DBHelpers (dbPool)
+import Endpoints (handleLogin, homepage, noteConsumption)
 
 dieOnConfigError = let handleError cpError = die $ concat ["There was a config file error: ", show $ fst cpError, " ", snd cpError]
                    in either handleError return

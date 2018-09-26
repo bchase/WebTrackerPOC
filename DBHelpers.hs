@@ -9,10 +9,11 @@ import Hasql.Connection (settings)
 import Hasql.Pool (acquire, Pool, use)
 import Hasql.Session (Session)
 import System.Exit (die)
+import Text.Read (readEither)
 import Web.Scotty (ActionM, liftAndCatchIO, raise)
 
 scottyActionFromEitherError kind =
-  let raiseError = raise . pack . ("There was a " <> kind <> " error: " <>) . show
+  let raiseError = raise . pack . (("There was a " <> kind <> " error: ") <>) . show
   in either raiseError return
 
 dbPool :: (String, String, String, String, String, String, String) -> IO Pool
@@ -25,11 +26,11 @@ dbPool (maxConnections', maxIdleSeconds', host', port', user', password', databa
     user <- readEither user'
     password <- readEither password'
     database <- readEither database'
-    return acquire (
+    return $ acquire (
       maxConnections,
       maxIdleSeconds,
       settings host port user password database
-    )
+      )
 
 scottyDoesDB :: Pool -> Session a -> ActionM a
 scottyDoesDB pool session = do

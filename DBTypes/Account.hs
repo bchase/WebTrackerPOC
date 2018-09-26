@@ -6,14 +6,13 @@ import Data.Text (Text)
 import Data.UUID (UUID)
 import qualified Hasql.Decoders as Decode
 import qualified Hasql.Encoders as Encode 
-import Hasql.Query (Query, statement)
+
+import DBTypes (DBTuple, KeyedTable, Table, WriteableTable)
 
 data Row = Row {
   identifier :: UUID,
-  name :: Text,
+  name :: Text
 }
-
-_table = const "account"
 
 instance DBTuple Row where
   columns = const ["identifier", "name"]
@@ -25,10 +24,16 @@ instance DBTuple Row where
 		      name' <- Decode.column Decode.text
                       return Row {
                         identifier = identifier',
-                        name = name',
-                      }
+                        name = name'
+                        }
+
+instance Table Row where
+  table = const "account"
+
+instance WritableTable Row where {}
 
 data PrimaryKey = PrimaryKey { u :: UUID }
+
 instance DBTuple PrimaryKey where
   columns = const ["identifier"]
   encoder = const $ u >$< Encode.param Encode.uuid
@@ -36,8 +41,5 @@ instance DBTuple PrimaryKey where
                     u' <- Decode.column Decode.uuid
                     return PrimaryKey { u = u' }
 
-instance WritableTable Row where
-  table = _table
-instance ReadableTable PrimaryKey Row where
-  table = _table
-    
+instance KeyedTable PrimaryKey Row where {}
+

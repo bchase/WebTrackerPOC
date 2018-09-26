@@ -7,16 +7,15 @@ import Data.Time.Clock (UTCTime)
 import Data.UUID (UUID)
 import qualified Hasql.Decoders as Decode
 import qualified Hasql.Encoders as Encode
-import Hasql.Query (Query, statement)
+
+import DBTypes (DBTuple, KeyedTable, Table, WriteableTable)
 
 data Row = Row {
   identifier :: UUID,
   account :: UUID,
   hash :: ByteString,
   expires :: UTCTime
-}
-
-_table = const "auth_session"
+  }
 
 instance DBTuple Row where
   columns = const ["identifier", "account", "hash", "expires"]
@@ -27,26 +26,29 @@ instance DBTuple Row where
                     )
   decoder = const $ do
                       identifier' <- Decode.column Decode.uuid
-		      account' <- Decode.column Decode.uuid
+                      account' <- Decode.column Decode.uuid
                       hash' <- Decode.column Decode.bytea
                       expires' <- Decode.column Decode.timestamptz
                       return Row {
                         identifier = identifier',
                         account = account',
                         hash = hash',
-			expires = expires'
-                      }
+                        expires = expires'
+                        }
+
+instance Table Row where
+  table = const "auth_session"
+
+instance WriteableTable Row where {}
 
 data PrimaryKey = PrimaryKey { u :: UUID }
+
 instance DBTuple PrimaryKey where
   columns = const ["identifier"]
   encoder = const $ u >$< Encode.param Encode.uuid
-  decoder = const do
+  decoder = const $ do
                     u' <- Decode.column Decode.uuid
                     return PrimaryKey { u = u' }
 
-instance WritableTable Row where
-  table = _table
-instance ReadableTable PrimaryKey Row where
-  table = _table
-    
+instance KeyedTable PrimaryKey Row where {}
+
