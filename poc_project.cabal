@@ -19,7 +19,8 @@ executable poc_scotty_server
                   ,time
                   ,tuple
                   ,uuid
-    other-modules: DBHelpers
+    other-modules: AuthSessionHelpers
+                  ,DBHelpers
                   ,DBTypes
                   ,DBTypes.Account
                   ,DBTypes.AuthSession
