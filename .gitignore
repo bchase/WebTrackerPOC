@@ -24,3 +24,6 @@ default.nix
 result
 result/*
 defaults.config
+
+
+poc.cabal

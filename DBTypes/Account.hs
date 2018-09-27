@@ -1,3 +1,6 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module DBTypes.Account where
 
 import Data.Functor.Contravariant ((>$<))
@@ -7,7 +10,7 @@ import Data.UUID (UUID)
 import qualified Hasql.Decoders as Decode
 import qualified Hasql.Encoders as Encode 
 
-import DBTypes (DBTuple, KeyedTable, Table, WriteableTable)
+import DBTypes (DBTuple(..), KeyedTable, Table(..), WritableTable)
 
 data Row = Row {
   identifier :: UUID,
@@ -21,7 +24,7 @@ instance DBTuple Row where
                     )
   decoder = const $ do
                       identifier' <- Decode.column Decode.uuid
-		      name' <- Decode.column Decode.text
+                      name' <- Decode.column Decode.text
                       return Row {
                         identifier = identifier',
                         name = name'
@@ -37,7 +40,7 @@ data PrimaryKey = PrimaryKey { u :: UUID }
 instance DBTuple PrimaryKey where
   columns = const ["identifier"]
   encoder = const $ u >$< Encode.param Encode.uuid
-  decoder = const do
+  decoder = const $ do
                     u' <- Decode.column Decode.uuid
                     return PrimaryKey { u = u' }
 

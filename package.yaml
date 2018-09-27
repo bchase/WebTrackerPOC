@@ -19,7 +19,8 @@ dependencies:
   - contravariant
   - hasql
   - hasql-pool
-  - scotty
+  - http-types
+  - scotty < 1
   - scotty-cookie
   - text
   - time

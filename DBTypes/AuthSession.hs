@@ -1,3 +1,6 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module DBTypes.AuthSession where
 
 import Data.ByteString (ByteString)
@@ -8,7 +11,7 @@ import Data.UUID (UUID)
 import qualified Hasql.Decoders as Decode
 import qualified Hasql.Encoders as Encode
 
-import DBTypes (DBTuple, KeyedTable, Table, WriteableTable)
+import DBTypes (DBTuple(..), KeyedTable, Table(..), WritableTable)
 
 data Row = Row {
   identifier :: UUID,
@@ -21,8 +24,8 @@ instance DBTuple Row where
   columns = const ["identifier", "account", "hash", "expires"]
   encoder = const $ (  (identifier >$< (Encode.param Encode.uuid))
                     <> (account >$< (Encode.param Encode.uuid))
-                    <> (hash >$< (Encode.value Encode.bytea))
-                    <> (expires >$< (Encode.value Encode.timestamptz))
+                    <> (hash >$< (Encode.param Encode.bytea))
+                    <> (expires >$< (Encode.param Encode.timestamptz))
                     )
   decoder = const $ do
                       identifier' <- Decode.column Decode.uuid
@@ -39,7 +42,7 @@ instance DBTuple Row where
 instance Table Row where
   table = const "auth_session"
 
-instance WriteableTable Row where {}
+instance WritableTable Row where {}
 
 data PrimaryKey = PrimaryKey { u :: UUID }
 
