@@ -6,13 +6,13 @@ cabal-version: >= 1.18
 build-type: Simple
 
 executable poc_scotty_server
-    build-depends: base < 5
+    build-depends: base
                   ,bytestring
                   ,ConfigFile
                   ,contravariant
-                  ,hasql 
+                  ,hasql
                   ,hasql-pool
-                  ,scotty < 1
+                  ,scotty
                   ,scotty-cookie
                   ,text
                   ,time

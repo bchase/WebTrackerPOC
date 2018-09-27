@@ -1,0 +1,43 @@
+name:                poc
+version:             0.1.0.0
+license:             AllRightsReserved
+author:              "foo"
+maintainer:          "foo@bar.com"
+copyright:           "Copyright (c) 2018 foo"
+
+# extra-source-files:
+#   - README.md
+#
+# ghc-options:
+#   - -Wall
+#   - -Werror
+
+dependencies:
+  - base
+  - bytestring
+  - ConfigFile
+  - contravariant
+  - hasql
+  - hasql-pool
+  - scotty
+  - scotty-cookie
+  - text
+  - time
+  - tuple
+  - uuid
+
+
+library:
+  source-dirs: .
+
+
+executables:
+  poc_scotty_server:
+    main:                Main.hs
+    source-dirs:         .
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - poc
