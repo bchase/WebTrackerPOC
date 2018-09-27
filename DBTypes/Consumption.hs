@@ -1,3 +1,6 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module DBTypes.Consumption where
 
 import Data.Functor.Contravariant ((>$<))
@@ -8,7 +11,7 @@ import Data.UUID (UUID)
 import qualified Hasql.Decoders as Decode
 import qualified Hasql.Encoders as Encode
 
-import DBTypes (DBTuple, KeyedTable, Table, WriteableTable)
+import DBTypes (DBTuple(..), KeyedTable, Table(..), WritableTable)
 
 data Row = Row {
   consumer :: UUID,
@@ -19,8 +22,8 @@ data Row = Row {
 instance DBTuple Row where
   columns = const ["consumer", "item", "happened", "status"]
   encoder = const $ (  (consumer >$< (Encode.param Encode.uuid))
-                    <> (item >$< (Encode.value Encode.uuid))
-                    <> (happened >$< (Encode.value Encode.timestamptz))
+                    <> (item >$< (Encode.param Encode.text))
+                    <> (happened >$< (Encode.param Encode.timestamptz))
                     )
   decoder = const $ do
                       consumer' <- Decode.column Decode.uuid

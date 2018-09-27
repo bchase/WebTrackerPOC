@@ -12,6 +12,7 @@ executable poc_scotty_server
                   ,contravariant
                   ,hasql 
                   ,hasql-pool
+                  ,http-types
                   ,scotty < 1
                   ,scotty-cookie
                   ,text
