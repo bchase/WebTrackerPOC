@@ -1,6 +1,7 @@
 extra-deps:
   # - hasql-0.20.1
   - scotty-cookie-0.1.0.3
+  - ConfigFile-1.1.4
 
 
 resolver: lts-12.10
