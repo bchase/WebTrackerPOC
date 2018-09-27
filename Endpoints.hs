@@ -28,9 +28,13 @@ import ScottyHelpers (getReferer, getTime)
 
 homepage :: Pool -> ActionM ()
 homepage connections = do
-  (accounts :: [Account.Row]) <- scottyDoesDB connections getAllRows
+  accounts <- getAllAccounts
   let accountNames = mconcat $ intersperse ",\n" $ fmap (("\"" <>) . (<> "\"") . Account.name) accounts
   text $ fromStrict accountNames
+
+  where
+    getAllAccounts :: ActionM [Account.Row]
+    getAllAccounts = scottyDoesDB connections getAllRows
 
 handleLogin :: Pool -> ActionM ()
 handleLogin connections = do
@@ -46,36 +50,59 @@ handleLogin connections = do
     (setSimpleCookie "authKey")
     (decodeUtf8' key)
   text $ fromStrict username
-  
+
 noteConsumption :: Pool -> ActionM ()  -- This needs to be rewritten with better monadic interaction (ActionM <-> Maybe) and more informative error messages.
 noteConsumption connections = do
-  (referer' :: Maybe Text) <- getReferer
-  (recievedAt :: UTCTime) <- getTime
-  (authID'' :: Maybe Text) <- getCookie "authID"
-  let (authID' :: Maybe UUID) = authID'' >>= fromText
-  (authKey' :: Maybe ByteString) <- fmap (fmap encodeUtf8) $ getCookie "authKey" 
-  authSession' <- fromMaybe (return Nothing) $ do -- the maybe monad
-    authID <- authID'
-    authKey <- authKey'
-    let getMaybeSession = scottyDoesDB connections $ getRow $ AuthSession.PrimaryKey authID
-    let checkPassword = undefined
-    let ifAuthenticated sess = if checkPassword (AuthSession.hash sess) authKey then Just sess else Nothing
-    return $ fmap (>>= ifAuthenticated) getMaybeSession
-  let consumption' = do -- the maybe monad
-        referer <- referer'
-        authSession <- authSession'
-        return Consumption.Row {
-                 Consumption.consumer = AuthSession.account authSession,
-                 Consumption.item = referer,
-                 Consumption.happened = recievedAt
-               }
-  maybe
-    (do
-      status paymentRequired402
-      text "")
-    (\consumption -> do
+  consumption <- buildConsumption
+
+  maybe err insertConsumptionAndReplyAccountName consumption
+
+  where
+    insertConsumptionAndReplyAccountName :: Consumption.Row -> ActionM ()
+    insertConsumptionAndReplyAccountName consumption = do
+      acct <- insertConsumption consumption
+      replyAccountName acct
+
+    insertConsumption :: Consumption.Row -> ActionM Account.Row
+    insertConsumption consumption = do
       scottyDoesDB connections $ addRow consumption
-      user <- scottyGuarenteesDB connections $ getRow $ Account.PrimaryKey $ Consumption.consumer consumption
-      text $ fromStrict $ Account.name user)
-    consumption'
+      scottyGuarenteesDB connections $ getRow $ Account.PrimaryKey $ Consumption.consumer consumption
+
+    replyAccountName :: Account.Row -> ActionM ()
+    replyAccountName acct = do
+      text $ fromStrict $ Account.name acct
+
+    err = do
+      status paymentRequired402
+      text ""
+
+    buildConsumption :: ActionM (Maybe Consumption.Row)
+    buildConsumption = do
+      mAccount   <- getAccount
+      mReferer   <- getReferer
+      recievedAt <- getTime
+
+      return $ do
+        referer <- mReferer
+        account <- mAccount
+        return Consumption.Row
+          { Consumption.consumer = account
+          , Consumption.item     = referer
+          , Consumption.happened = recievedAt
+          }
+
+
+    getAccount :: ActionM (Maybe UUID)
+    getAccount = do
+      authID'' <- getCookie "authID"
+      let authID' = authID'' >>= fromText
+      authKey' <- fmap (fmap encodeUtf8) $ getCookie "authKey"
+      authSession' <- fromMaybe (return Nothing) $ do -- the maybe monad
+        authID <- authID'
+        authKey <- authKey'
+        let getMaybeSession = scottyDoesDB connections $ getRow $ AuthSession.PrimaryKey authID
+        let checkPassword = undefined
+        let ifAuthenticated sess = if checkPassword (AuthSession.hash sess) authKey then Just sess else Nothing
+        return $ fmap (>>= ifAuthenticated) getMaybeSession
+      return $ AuthSession.account <$> authSession'
 
