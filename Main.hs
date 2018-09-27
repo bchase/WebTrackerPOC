@@ -7,7 +7,7 @@ import Data.Monoid ((<>))
 import Data.Tuple.Sequence (sequenceT)
 import Hasql.Pool (release)
 import System.Exit (die)
-import Web.Scotty (ActionM, get, liftAndCatchIO, post, scotty)
+import Web.Scotty (ActionM, get, liftAndCatchIO, post, put, scotty)
 
 import DBHelpers (dbPool)
 import Endpoints (handleLogin, homepage, noteConsumption)
@@ -23,15 +23,15 @@ main = do
   conf <- configurationParser "defaults.config"
   dbSettings <- let dbConf = dieOnConfigError . (simpleAccess conf "DatabaseConnectionPool")
                 in  sequenceT (
-		  dbConf "maxConnections",
-		  dbConf "maxIdleSeconds",
+                  dbConf "maxConnections",
+                  dbConf "maxIdleSeconds",
                   dbConf "host",
-		  dbConf "port",
-		  dbConf "user",
+                  dbConf "port",
+                  dbConf "user",
                   dbConf "password",
-		  dbConf "database"
-		)
-  pool <- dbPool bdSettings
+                  dbConf "database"
+                )
+  pool <- dbPool dbSettings
   scotty 3000 $ do
     get "/" $ homepage pool
     put "/login" $ handleLogin pool
