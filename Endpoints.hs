@@ -17,11 +17,13 @@ import Network.HTTP.Types.Status (paymentRequired402)
 import Web.Scotty (ActionM, liftAndCatchIO, param, raise, status, text)
 import Web.Scotty.Cookie (getCookie, setSimpleCookie)
 
+import AuthSessionHelpers (makeNewUserSession, makeSessionForUser)
 import DBHelpers (dbPool, scottyActionFromEitherError, scottyDoesDB, scottyGuarenteesDB)
 import DBTypes (addRow, getAllRows, getRow)
 import qualified DBTypes.Account as Account (name, PrimaryKey(..), Row(..))
 import qualified DBTypes.AuthSession as AuthSession (identifier, PrimaryKey(..), Row(..))
 import qualified DBTypes.Consumption as Consumption (Row(..))
+import ScottyHelpers (getReferer, getTime)
 
 homepage :: Pool -> ActionM ()
 homepage connections = do
@@ -57,7 +59,7 @@ noteConsumption connections = do
         referer <- referer'
         authSession <- authSession'
         return Consumption.Row {
-	         Consumption.consumer = account authSession,
+                 Consumption.consumer = account authSession,
                  Consumption.item = referer,
                  Consumption.happened = recievedAt
                }

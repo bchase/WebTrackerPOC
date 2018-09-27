@@ -23,14 +23,14 @@ main = do
   conf <- configurationParser "defaults.config"
   dbSettings <- let dbConf = dieOnConfigError . (simpleAccess conf "DatabaseConnectionPool")
                 in  sequenceT (
-		  dbConf "maxConnections",
-		  dbConf "maxIdleSeconds",
+                  dbConf "maxConnections",
+                  dbConf "maxIdleSeconds",
                   dbConf "host",
-		  dbConf "port",
-		  dbConf "user",
+                  dbConf "port",
+                  dbConf "user",
                   dbConf "password",
-		  dbConf "database"
-		)
+                  dbConf "database"
+                )
   pool <- dbPool bdSettings
   scotty 3000 $ do
     get "/" $ homepage pool

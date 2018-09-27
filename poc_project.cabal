@@ -25,5 +25,6 @@ executable poc_scotty_server
                   ,DBTypes.AuthSession
                   ,DBTypes.Consumption
                   ,Endpoints
+                  ,ScottyHelpers
     main-is: Main.hs
     default-language: Haskell2010
